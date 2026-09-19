@@ -1,0 +1,64 @@
+# Build Release x64 and publish a real GitHub Release (green "Latest",
+# not a tag-only ref). Recreated on every push to main so the badge
+# and the attached sysinfo.exe always match HEAD.
+
+name: Build and Latest Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Locate MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Release x64
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:GITHUB_WORKSPACE "x64\Release\"
+          $int = Join-Path $env:GITHUB_WORKSPACE "x64\Release\obj\"
+          msbuild sysinfo.vcxproj `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:PlatformToolset=v145 `
+            /p:OutDir=$out `
+            /p:IntDir=$int `
+            /v:minimal
+          $exe = Join-Path $out "sysinfo.exe"
+          if (-not (Test-Path -LiteralPath $exe)) {
+            throw "Build did not produce $exe"
+          }
+
+      - name: Publish Latest GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE "x64\Release\sysinfo.exe"
+          $sha = "${{ github.sha }}"
+          $run = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $notes = @"
+          Automated **Release x64** build (MSVC v145).
+
+          - Commit: ``$sha``
+          - Workflow run: $run
+          "@
+
+          # Drop the previous Latest release + its moving tag, then
+          # recreate it as a published release (--latest = green badge).
+          gh release delete latest --yes --cleanup-tag 2>$null
+          gh release create latest $exe `
+            --title "Latest" `
+            --notes $notes `
+            --latest `
+            --target $sha

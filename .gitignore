@@ -1,0 +1,58 @@
+# sysinfo — ignore only what this MSVC console app produces.
+# No Node/Python/CMake/Android noise: those stacks are not in this repo.
+
+# Visual Studio 2026 local cache (browse DB, IntelliSense PCH, window layout)
+.vs/
+
+# Per-user debugger / start-project settings (empty or machine-specific)
+*.vcxproj.user
+*.sln.docstates
+*.suo
+
+# Intermediate objects: VS defaults IntDir to <ProjectName>\<Platform>\<Config>
+# e.g. sysinfo\x64\Release\*.obj
+sysinfo/x64/
+sysinfo/Win32/
+
+# Linker output and the one-off folder used when Release\sysinfo.exe was locked
+x64/
+Win32/
+
+# If anyone builds from the IDE with default $(Configuration) at repo root
+/Debug/
+/Release/
+
+# Compiler / linker leftovers if they ever land outside IntDir/OutDir
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.iobj
+*.ipdb
+*.exp
+*.lib
+*.tlog
+*.lastbuildstate
+*.recipe
+*.log
+*.ipch
+*.VC.db
+*.VC.db-shm
+*.VC.db-wal
+*.VC.opendb
+*.sdf
+*.opensdf
+
+# Visual Studio project-upgrade leftovers
+UpgradeLog.htm
+UpgradeLog.XML
+_UpgradeReport_Files/
+Backup*/
+
+# Runtime report is written to the user Desktop, not the repo.
+# Ignore a copy if someone drops it next to the sources.
+/sysinfo.txt
+
+#AI debugging info
+CLAUDE.md
